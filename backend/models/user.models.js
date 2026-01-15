@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
     },
+    avatarurl:{
+        type:String,
+        default:"",
+    },
     fullName:{
         type:String,
         required:true,
@@ -25,7 +29,7 @@ const userSchema = new mongoose.Schema({
             type:mongoose.Schema.Types.ObjectId,
             ref:'Record'
         }
-    ]
+    ],
 },{ timestamps:true});
 
 userSchema.pre("save", async function () {

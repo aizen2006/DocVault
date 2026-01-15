@@ -2,6 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import 'dotenv/config';
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
