@@ -1,0 +1,128 @@
+import asyncHandler from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { User } from "../models/user.models.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+
+
+const generateAccessAndRefreshTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+        if (!user) {
+            throw new ApiError(404, "User not found")
+        }
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false }); // validation is not required here
+        return { accessToken, refreshToken }
+    } catch (error) {
+        throw new ApiError(500, "Error generating tokens", error)
+    }
+}
+
+const registerUser = asyncHandler(async (req, res) => {
+    const { fullname, email, username, password, role } = req.body
+    if (
+        [fullname, email, password, username, role].some((field) => field?.trim() === "")
+    ) {
+        throw new ApiError(400, "All fields are is required")
+    }
+    const existingUser = await User.findOne({
+        $or: [{ email }, { username }]
+    });
+    if (existingUser) {
+        throw new ApiError(409, "User with provided email or username already exists")
+    }
+    const avatarLocalPath = req.file?.path;
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required. Make sure the form field name is 'avatar' and you use multipart/form-data.");
+    }
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    if (!avatar) {
+        throw new ApiError(500, "Failed to upload avatar to Cloudinary");
+    }
+    const user = await User.create({
+        fullName: fullname,
+        email: email,
+        username: username.toLowerCase(),
+        role: role,
+        password: password,
+        avatarUrl: avatar.url || '',
+    })
+
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    );
+
+    if (!createdUser) {
+        throw new ApiError(500, "User registration failed, please try again")
+    }
+
+    return res.status(201).json(
+        new ApiResponse(201, "User registered successfully", createdUser)
+    )
+});
+
+const loginUser = asyncHandler(async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        throw new ApiError (400, "Credentials are required")
+    }
+    console.log(req.body);
+    const user = await User.findOne({ username: username });
+
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+    const isPasswordValid = await user.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+        throw new ApiError(400, 'Incorrect Password')
+    }
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id.toString())
+    // toString() isleye kuki ye ObjectId("id") ke structure me hota hai
+    const LoggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    const cookieOptions = {
+        httpOnly: true, // accessible only by web server
+        secure: true
+    }
+    return res.status(201)
+        .cookie("access Token", accessToken, cookieOptions)
+        .cookie("RefreshToken", refreshToken, cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: LoggedInUser,
+                    accessToken,
+                    refreshToken,
+                },
+                'User successfully logined'
+            )
+        )
+});
+
+const logoutUser= asyncHandler(async(req,res)=>{
+    await User.findByIdAndUpdate(req.user._id,
+        {
+            $unset:{
+                refreshToken:1
+            }
+        },{
+            new:true, validateBeforeSave:false
+        });
+    const cookieOptions = {
+        httpOnly: true, // accessible only by web server
+        secure:true
+    }
+    return res.status(200)
+    .clearCookie('access Token',cookieOptions)
+    .clearCookie('RefreshToken',cookieOptions)
+    .json(
+        new ApiResponse(200,'User logged out successfully')
+    );
+});
+
+
+export { registerUser, loginUser ,logoutUser};

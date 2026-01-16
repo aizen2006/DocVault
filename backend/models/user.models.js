@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema({
         required:true,
         unique:true,
     },
+    role:{
+        type:String,
+        enum:['sender','receiver'],
+        default:'user',
+    },
     email:{
         type:String,
         required:true,
