@@ -1,6 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import mongoose from "mongoose";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
@@ -245,54 +244,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     );
 });
 
-const getUserRecords = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-    const userRecords = await User.aggregate([
-        {
-            $match: {
-                _id: new mongoose.Types.ObjectId(userId)
-            }
-        },
-        {
-            $lookup: {
-                from: 'records',
-                localField: 'records',
-                foreignField: '_id',
-                as: 'userRecords',
-                pipeline: [
-                    {
-                        $lookup: {
-                            from: 'users',
-                            localField: 'owner',
-                            foreignField: '_id',
-                            as: 'ownerDetails',
-                            pipeline: [
-                                {
-                                    $project: {
-                                        fullname: 1,
-                                        username: 1,
-                                        avatar: 1
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        $addFields: {
-                            owner: {
-                                $first: "$ownerDetails"
-                            }
-                        }
-                    }
-                ]
-            }
-        }
-    ]);
-    return res.status(200)
-        .json(
-            new ApiResponse(200, userRecords[0]?.userRecords || [], "User records fetched")
-        );
-})
+
 
 export {
     registerUser,
@@ -303,5 +255,4 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    getUserRecords
 };
