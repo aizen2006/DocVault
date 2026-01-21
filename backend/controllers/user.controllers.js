@@ -68,14 +68,22 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { username, password } = req.body || {};
-    if (!username || !password) {
-        throw new ApiError(400, "Credentials are required")
+    // req.body can contain either username or email as 'email' field from frontend or generic 'username'
+    const { email, username, password } = req.body;
+
+    // Check if either email or username is provided along with password
+    if (!(email || username) || !password) {
+        throw new ApiError(400, "Username or Email and Password are required")
     }
-    const user = await User.findOne({ username: username });
+
+    const user = await User.findOne({
+        $or: [{ username: username }, { email: email || username }]
+    });
+
     if (!user) {
         throw new ApiError(404, "User not found")
     }
+
     const isPasswordValid = await user.isPasswordCorrect(password);
     if (!isPasswordValid) {
         throw new ApiError(400, 'Incorrect Password')
