@@ -1,25 +1,45 @@
-import React, { useState } from 'react';
-import { FaArrowLeft, FaFilePdf, FaEdit, FaSave, FaCheck, FaTimes } from 'react-icons/fa';
-import { Link } from 'react-router';
+import React, { useState, useEffect } from 'react';
+import { FaArrowLeft, FaFilePdf, FaEdit, FaSave, FaCheck, FaTimes, FaFileAlt } from 'react-icons/fa';
+import { Link, useParams } from 'react-router';
+import axios from 'axios';
 
 export default function DocumentDetail() {
+    const { id } = useParams();
     const [isEditing, setIsEditing] = useState(false);
-    // Mock Data
-    const [metadata, setMetadata] = useState({
-        fileName: 'Q3_Financial_Report_Final.pdf',
-        fileSize: '2.4 MB',
-        format: 'PDF',
-        sensitivity: 'Confidential',
-        language: 'English (US)',
-        owner: 'Sarah Jenkins',
-        description: 'This document contains the finalized financial statements for Q3, including the profit and loss breakdown, balance sheet, and cash flow analysis. It outlines key performance indicators and variances against the budget.',
-        tags: ['Financial', 'Q3_2023', 'BoardMeeting', 'Report']
-    });
+    const [loading, setLoading] = useState(true);
+    const [metadata, setMetadata] = useState(null);
+
+    useEffect(() => {
+        const fetchRecord = async () => {
+            try {
+                const response = await axios.get(`/api/v1/records/view-record/${id}`);
+                if (response.data.success) {
+                    setMetadata(response.data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch record details:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchRecord();
+        }
+    }, [id]);
 
     const handleSave = () => {
         setIsEditing(false);
-        // Add save logic here
+        // Implement real update API here in future steps
     };
+
+    if (loading) {
+        return <div className="p-8 text-center text-gray-500">Loading document details...</div>;
+    }
+
+    if (!metadata) {
+        return <div className="p-8 text-center text-red-500">Document not found.</div>;
+    }
 
     return (
         <div className="space-y-6">
@@ -30,7 +50,7 @@ export default function DocumentDetail() {
                     Back to Records
                 </Link>
                 <span className="mx-2">/</span>
-                <span>Financials</span>
+                <span>{metadata.categoryTags || 'Uncategorized'}</span>
                 <span className="mx-2">/</span>
                 <span className="text-gray-900 dark:text-gray-300 font-medium">{metadata.fileName}</span>
             </div>
@@ -46,9 +66,8 @@ export default function DocumentDetail() {
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                                 {metadata.fileName}
                                 <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded uppercase tracking-wide">Verified</span>
-                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-bold rounded uppercase tracking-wide">v1.2</span>
                             </h1>
-                            <p className="text-sm text-gray-500 mt-1">/Financials/2023/Reports/Quarterly/{metadata.fileName}</p>
+                            <p className="text-sm text-gray-500 mt-1">/Records/{new Date(metadata.createdAt).getFullYear()}/{metadata.fileName}</p>
                         </div>
                     </div>
                     <div className="flex gap-3">
@@ -78,29 +97,26 @@ export default function DocumentDetail() {
                     <div>
                         <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">File Size</span>
                         <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
-                            {metadata.fileSize}
+                            {metadata.fileSize || 'N/A'}
                         </span>
                     </div>
                     <div>
                         <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Format</span>
                         <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
                             <FaFilePdf className="text-gray-400" />
-                            {metadata.format}
+                            {metadata.fileType || 'PDF'}
                         </span>
                     </div>
                     <div>
                         <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Sensitivity</span>
                         <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
-                            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            {metadata.sensitivity}
+                            Confidential
                         </span>
                     </div>
                     <div>
                         <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Language</span>
                         <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
-                            {metadata.language}
+                            English (US)
                         </span>
                     </div>
                 </div>
@@ -123,7 +139,7 @@ export default function DocumentDetail() {
                             />
                         ) : (
                             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                {metadata.description}
+                                {metadata.description || 'No description provided.'}
                             </p>
                         )}
                     </div>
@@ -132,19 +148,12 @@ export default function DocumentDetail() {
                     <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                            Associated Tags
+                            Category & Tags
                         </h3>
                         <div className="flex flex-wrap gap-2">
-                            {metadata.tags.map((tag, index) => (
-                                <span key={index} className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-700">
-                                    #{tag}
-                                </span>
-                            ))}
-                            {isEditing && (
-                                <button className="px-3 py-1 border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 rounded-full text-sm hover:border-blue-500 hover:text-blue-500 transition-colors">
-                                    + Add Tag
-                                </button>
-                            )}
+                            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-700">
+                                #{metadata.categoryTags}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -155,11 +164,11 @@ export default function DocumentDetail() {
                         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Ownership</h3>
                         <div className="flex items-center">
                             <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">
-                                {metadata.owner.charAt(0)}
+                                {metadata.owner?.fullname?.charAt(0) || '?'}
                             </div>
                             <div className="ml-3">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">{metadata.owner}</p>
-                                <p className="text-xs text-gray-500">Administrator • Finance Dept</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{metadata.owner?.fullname || 'Unknown'}</p>
+                                <p className="text-xs text-gray-500">@{metadata.owner?.username}</p>
                             </div>
                         </div>
                     </div>
@@ -170,14 +179,12 @@ export default function DocumentDetail() {
                             <div className="relative">
                                 <span className="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-white dark:ring-[#151725]"></span>
                                 <p className="text-xs text-gray-500 mb-1">Last Modified</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">Oct 24, 2023</p>
-                                <p className="text-xs text-gray-500">10:42 AM by Sarah Jenkins</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{new Date(metadata.updatedAt).toLocaleDateString()}</p>
                             </div>
                             <div className="relative">
                                 <span className="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-700 ring-4 ring-white dark:ring-[#151725]"></span>
                                 <p className="text-xs text-gray-500 mb-1">Created</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">Oct 20, 2023</p>
-                                <p className="text-xs text-gray-500">09:15 AM</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{new Date(metadata.createdAt).toLocaleDateString()}</p>
                             </div>
                         </div>
                     </div>
@@ -185,7 +192,7 @@ export default function DocumentDetail() {
                     <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
                         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">System ID</h3>
                         <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-800 text-xs font-mono text-gray-600 dark:text-gray-400 break-all">
-                            doc_8f92a18b-4...
+                            {metadata._id}
                         </div>
                     </div>
                 </div>

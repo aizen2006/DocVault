@@ -122,9 +122,12 @@ export default function SenderDashboard() {
                             onChange={e => setFormData({ ...formData, categoryTags: e.target.value })}
                         >
                             <option>Select...</option>
-                            <option>Financial</option>
-                            <option>Legal</option>
-                            <option>Technical</option>
+                            <option value="Document">Document</option>
+                            <option value="Images">Images</option>
+                            <option value="Audio">Audio</option>
+                            <option value="PDF">PDF</option>
+                            <option value="Spreadsheet">Spreadsheet</option>
+                            <option value="PPT">PPT</option>
                         </select>
                         {errors.categoryTags && <p className="text-xs text-red-500 mt-1">{errors.categoryTags}</p>}
                     </div>

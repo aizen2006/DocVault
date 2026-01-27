@@ -29,11 +29,7 @@ export default function DashboardLayout() {
 
     // Define nav items with allowed roles
     const allNavItems = [
-        { name: 'Dashboard', path: '/dashboard', icon: FaHome, roles: ['Sender', 'Receiver', 'Admin'] },
-        // Sender specific
-        { name: 'Upload', path: '/dashboard', icon: FaFileAlt, roles: ['Sender'] }, // Reusing dashboard for now default view
-        // Receiver specific
-        { name: 'Records', path: '/dashboard/records', icon: FaFileAlt, roles: ['Receiver', 'Admin'] },
+        { name: 'Overview', path: '/dashboard', icon: FaHome, roles: ['Sender', 'Receiver', 'Admin'] },
 
         { name: 'Analytics', path: '/dashboard/analytics', icon: FaChartBar, roles: ['Sender', 'Receiver', 'Admin'] },
         { name: 'Settings', path: '/dashboard/settings', icon: FaCog, roles: ['Sender', 'Receiver', 'Admin'] },
@@ -103,9 +99,11 @@ export default function DashboardLayout() {
                             <FaBell className="w-5 h-5" />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#151725]"></span>
                         </button>
-                        <button className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity flex items-center">
-                            + New Record
-                        </button>
+                        {(role === 'Sender' || role === 'sender') && (
+                            <button className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity flex items-center">
+                                + New Record
+                            </button>
+                        )}
                     </div>
                 </header>
 

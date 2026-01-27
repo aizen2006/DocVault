@@ -9,7 +9,7 @@ const viewRecord = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Record ID is required");
     }
     try {
-        const record = await Record.findById(recordId);
+        const record = await Record.findById(recordId).populate('owner', 'fullname username');
         if (!record) {
             throw new ApiError(404, "Record not found");
         }

@@ -1,58 +1,15 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { User } from "../models/user.models.js";
-import mongoose from "mongoose";
+import { Record } from "../models/record.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const getUserRecords = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
     try {
-        const userRecords = await User.aggregate([
-            {
-                $match: {
-                    _id: new mongoose.Types.ObjectId(userId)
-                }
-            },
-            {
-                $lookup: {
-                    from: 'records',
-                    localField: 'records',
-                    foreignField: '_id',
-                    as: 'userRecords',
-                    pipeline: [
-                        {
-                            $lookup: {
-                                from: 'users',
-                                localField: 'owner',
-                                foreignField: '_id',
-                                as: 'ownerDetails',
-                                pipeline: [
-                                    {
-                                        $project: {
-                                            fullname: 1,
-                                            username: 1,
-                                            avatar: 1
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            $addFields: {
-                                owner: {
-                                    $first: "$ownerDetails"
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        ]);
-
+        const records = await Record.find({ owner: req.user._id }).sort({ createdAt: -1 });
         return res.status(200)
             .json(
-                new ApiResponse(200, userRecords[0]?.userRecords || [], "User records fetched")
+                new ApiResponse(200, records, "User records fetched successfully")
             );
     } catch (err) {
         throw new ApiError(500, "Failed to fetch user records", err);

@@ -7,6 +7,7 @@ import Login from './routes/Auth/login';
 import Register from './routes/Auth/Register';
 import LandingPage from './routes/LandingPage';
 import DashboardLayout from './components/DashboardLayout';
+import DashboardHome from './routes/Dashboard/DashboardHome';
 import SenderDashboard from './routes/Dashboard/SenderDashboard';
 import ReceiverDashboard from './routes/Dashboard/ReceiverDashboard';
 import DocumentDetail from './routes/Dashboard/DocumentDetail';
@@ -40,7 +41,7 @@ function App() {
         {/* Protected Dashboard Routes */}
         <Route element={<AuthLayout />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<SenderDashboard />} />
+            <Route index element={<DashboardHome />} />
             <Route path="records" element={<ReceiverDashboard />} />
             <Route path="records/:id" element={<DocumentDetail />} />
             <Route path="analytics" element={<div className="p-8">Analytics View (Performing...)</div>} />

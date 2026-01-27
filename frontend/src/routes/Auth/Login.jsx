@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router';
 import { FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 import { z } from 'zod';
+import { useDispatch } from 'react-redux';
+import { login } from '../../store/authSlice';
 
 // Define Zod schema for validation
 const loginSchema = z.object({
@@ -12,6 +14,7 @@ const loginSchema = z.object({
 
 export default function Login() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -64,8 +67,10 @@ export default function Login() {
             if (response.data.success) {
                 // Successful login
                 console.log("Login successful:", response.data);
-                // Redirect to dashboard or home (adjust path as needed)
-                navigate('/');
+                // Dispatch login action
+                dispatch(login({ user: response.data.data.user, token: response.data.data.accessToken }));
+                // Redirect to dashboard
+                navigate('/dashboard');
             }
         } catch (error) {
             console.error("Login Error:", error);
