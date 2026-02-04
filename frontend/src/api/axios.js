@@ -2,9 +2,17 @@ import axios from 'axios';
 import store from '../store/store';
 import { logout, login } from '../store/authSlice';
 
+// Base URL:
+// - In development, Vite dev server proxies `/api` to the local backend.
+// - In production (Vercel), we call the deployed backend directly via VITE_API_BASE_URL.
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL
+        ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}`
+        : '/api/v1';
+
 // Create axios instance
 const api = axios.create({
-    baseURL: '/api/v1',
+    baseURL: API_BASE_URL,
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
