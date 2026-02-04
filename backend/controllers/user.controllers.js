@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.models.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import config from "../config/index.js";
 
 const ACCESS_COOKIE = "accessToken";
@@ -29,6 +30,19 @@ const generateAccessAndRefreshTokens = async (userId) => {
         throw new ApiError(500, "Error generating tokens", error)
     }
 }
+
+// Generate a password reset token (plain) and store its hash + expiry on the user
+const generatePasswordResetToken = async (user) => {
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    // Token valid for 1 hour
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
+    await user.save({ validateBeforeSave: false });
+
+    return resetToken;
+};
 
 const registerUser = asyncHandler(async (req, res) => {
     // Validation handled by Zod middleware
@@ -171,6 +185,55 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
             new ApiResponse(200, {}, "Password changed successfully")
         )
 })
+
+// Forgot password - generates a reset token and (for now) returns it in response.
+// In a real production system, this token should be emailed to the user instead.
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    // For security, always respond with success even if user doesn't exist
+    if (!user) {
+        return res.status(200).json(
+            new ApiResponse(200, null, "If an account with that email exists, a reset link has been sent.")
+        );
+    }
+
+    const resetToken = await generatePasswordResetToken(user);
+
+    // In production, send this URL via email using a mail provider.
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
+
+    return res.status(200).json(
+        new ApiResponse(200, { resetToken, resetUrl }, "Password reset link generated successfully")
+    );
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+        throw new ApiError(400, "Invalid or expired password reset token");
+    }
+
+    user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(200, null, "Password has been reset successfully")
+    );
+});
 const getCurrentUser = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, req.user, "Current user fetched successfully")
@@ -228,4 +291,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
+    forgotPassword,
+    resetPassword,
 };

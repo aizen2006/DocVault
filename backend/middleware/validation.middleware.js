@@ -77,6 +77,23 @@ export const changePasswordSchema = z.object({
     { message: "New password must be different from old password", path: ["newPassword"] }
 );
 
+// Forgot/reset password
+export const forgotPasswordSchema = z.object({
+    email: z.string()
+        .email("Invalid email address")
+        .toLowerCase()
+        .trim()
+});
+
+export const resetPasswordSchema = z.object({
+    token: z.string().min(1, "Reset token is required"),
+    newPassword: z.string()
+        .min(8, "New password must be at least 8 characters")
+        .max(128, "New password must be at most 128 characters")
+        .regex(/[A-Za-z]/, "New password must contain at least one letter")
+        .regex(/[0-9]/, "New password must contain at least one number")
+});
+
 // ============ Profile Schemas ============
 
 export const updateDetailsSchema = z.object({

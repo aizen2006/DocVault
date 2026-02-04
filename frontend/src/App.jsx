@@ -5,6 +5,8 @@ import api from './api/axios';
 import { login, authCheckComplete } from './store/authSlice';
 import Login from './routes/Auth/Login';
 import Register from './routes/Auth/Register';
+import ForgotPassword from './routes/Auth/ForgotPassword';
+import ResetPassword from './routes/Auth/ResetPassword';
 import LandingPage from './routes/LandingPage';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardHome from './routes/Dashboard/DashboardHome';
@@ -55,6 +57,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Protected Dashboard Routes */}
         <Route element={<AuthLayout />}>

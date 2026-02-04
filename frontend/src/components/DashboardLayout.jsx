@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
-import { FaHome, FaFileAlt, FaChartBar, FaCog, FaSignOutAlt, FaBell, FaUserCircle, FaUpload, FaFolderOpen } from 'react-icons/fa';
+import { FaHome, FaChartBar, FaCog, FaSignOutAlt, FaBell, FaUserCircle, FaUpload, FaFolderOpen } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/authSlice';
 import api from '../api/axios';
+import { motion } from 'motion/react';
 
 export default function DashboardLayout() {
     const { user } = useSelector(state => state.auth);
@@ -35,83 +36,132 @@ export default function DashboardLayout() {
     const navItems = allNavItems.filter(item => item.roles.includes(role));
 
     return (
-        <div className="flex h-screen bg-gray-50 dark:bg-[#0B0C15] text-gray-900 dark:text-white transition-colors duration-300">
+        <div className="flex h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#050614] dark:via-[#050814] dark:to-[#050612] text-gray-900 dark:text-white transition-colors duration-300">
             {/* Sidebar */}
-            <aside className="w-64 bg-white dark:bg-[#151725] border-r border-gray-200 dark:border-gray-800 flex flex-col">
+            <motion.aside
+                initial={{ x: -40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 120, damping: 18 }}
+                className="w-64 bg-white/90 dark:bg-[#151725]/90 border-r border-gray-200/80 dark:border-gray-800/80 backdrop-blur-md flex flex-col shadow-sm"
+            >
                 <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center space-x-3">
-                    <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">DV</div>
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="h-9 w-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md"
+                    >
+                        DV
+                    </motion.div>
                     <div>
-                        <span className="text-lg font-bold block">DocVault</span>
-                        <span className="text-xs text-gray-500 uppercase tracking-wider">{role} Workspace</span>
+                        <span className="text-lg font-semibold block tracking-tight">DocVault</span>
+                        <span className="text-xs text-gray-500 uppercase tracking-[0.18em]">
+                            {role} workspace
+                        </span>
                     </div>
                 </div>
 
-                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     {navItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (
-                            <Link
+                            <motion.div
                                 key={item.name}
-                                to={item.path}
-                                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                                    : 'text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                    }`}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.15 }}
                             >
-                                <item.icon className="w-5 h-5 mr-3" />
-                                {item.name}
-                            </Link>
-                        )
+                                <Link
+                                    to={item.path}
+                                    className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent ${
+                                        isActive
+                                            ? 'bg-blue-50/80 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 border-blue-100/60 dark:border-blue-800/60 shadow-sm'
+                                            : 'text-gray-700 dark:text-gray-400 hover:bg-gray-100/70 dark:hover:bg-gray-800/70 hover:border-gray-200/60 dark:hover:border-gray-700/60'
+                                    } transition-colors`}
+                                >
+                                    <item.icon className="w-4 h-4 mr-3" />
+                                    {item.name}
+                                </Link>
+                            </motion.div>
+                        );
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+                <div className="p-4 border-t border-gray-200/80 dark:border-gray-800/80">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50/80 dark:hover:bg-red-900/20 rounded-xl transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800"
                     >
-                        <FaSignOutAlt className="w-5 h-5 mr-3" />
-                        Log Out
+                        <FaSignOutAlt className="w-4 h-4 mr-2.5" />
+                        Log out
                     </button>
-                    <div className="mt-4 flex items-center px-4">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                            {/* Placeholder Avatar */}
-                            <FaUserCircle className="w-full h-full text-gray-400" />
+                    <div className="mt-4 flex items-center px-3 py-2 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 border border-gray-200/70 dark:border-gray-800/80">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-gray-700 dark:to-gray-800 overflow-hidden flex items-center justify-center">
+                            <FaUserCircle className="w-7 h-7 text-gray-400" />
                         </div>
                         <div className="ml-3 overflow-hidden">
-                            <p className="text-sm font-medium truncate">{user?.fullname || user?.username || 'User'}</p>
-                            <p className="text-xs text-gray-500 capitalize">{role}</p>
+                            <p className="text-sm font-medium truncate">
+                                {user?.fullname || user?.username || 'User'}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize truncate">
+                                {role}
+                            </p>
                         </div>
                     </div>
                 </div>
-            </aside>
+            </motion.aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.25 }}
+                className="flex-1 flex flex-col overflow-hidden"
+            >
                 {/* Topbar */}
-                <header className="bg-white dark:bg-[#151725] border-b border-gray-200 dark:border-gray-800 h-16 flex items-center justify-between px-8">
-                    <h1 className="text-xl font-bold">Overview</h1>
+                <header className="bg-white/80 dark:bg-[#151725]/90 border-b border-gray-200/80 dark:border-gray-800/80 h-16 flex items-center justify-between px-8 backdrop-blur-md">
+                    <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500 mb-0.5">
+                            Dashboard
+                        </p>
+                        <h1 className="text-lg font-semibold">
+                            {role === 'sender' ? 'Sender overview' : 'Receiver overview'}
+                        </h1>
+                    </div>
                     <div className="flex items-center space-x-4">
-                        <button className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors relative">
-                            <FaBell className="w-5 h-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#151725]"></span>
-                        </button>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="p-2.5 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-full transition-colors relative border border-transparent hover:border-gray-200/80 dark:hover:border-gray-700/80"
+                        >
+                            <FaBell className="w-4 h-4" />
+                            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white dark:border-[#151725]" />
+                        </motion.button>
                         {role === 'sender' && (
-                            <Link 
-                                to="/dashboard"
-                                className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity flex items-center"
-                            >
-                                + New Record
-                            </Link>
+                            <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}>
+                                <Link
+                                    to="/dashboard"
+                                    className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-full hover:opacity-95 transition-opacity flex items-center shadow-sm"
+                                >
+                                    + New Record
+                                </Link>
+                            </motion.div>
                         )}
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-8">
-                    <Outlet />
-                </main>
-            </div>
+                <motion.main
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-1 overflow-y-auto p-6 sm:p-8"
+                >
+                    <div className="max-w-6xl mx-auto">
+                        <Outlet />
+                    </div>
+                </motion.main>
+            </motion.div>
         </div>
     );
 }

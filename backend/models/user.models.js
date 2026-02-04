@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
             ref: 'Record'
         }
     ],
+    resetPasswordToken: {
+        type: String,
+    },
+    resetPasswordExpires: {
+        type: Date,
+    },
 }, { timestamps: true });
 
 // Indexes for better query performance
