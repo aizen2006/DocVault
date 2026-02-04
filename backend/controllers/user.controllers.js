@@ -2,12 +2,15 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.models.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
-import { deleteFromCloudnary } from "../utils/cloudinary.js";
+import config from "../config/index.js";
 
 const ACCESS_COOKIE = "accessToken";
 const REFRESH_COOKIE = "refreshToken";
+
+// Centralized cookie options from config
+const getCookieOptions = () => ({ ...config.cookies.options });
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -28,12 +31,9 @@ const generateAccessAndRefreshTokens = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req, res) => {
-    const { fullname, email, username, password, role } = req.body
-    if (
-        [fullname, email, password, username, role].some((field) => field?.trim() === "")
-    ) {
-        throw new ApiError(400, "All fields are is required")
-    }
+    // Validation handled by Zod middleware
+    const { fullname, email, username, password, role } = req.body;
+    
     const existingUser = await User.findOne({
         $or: [{ email }, { username }]
     });
@@ -68,13 +68,8 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-    // req.body can contain either username or email as 'email' field from frontend or generic 'username'
+    // Validation handled by Zod middleware
     const { email, username, password } = req.body;
-
-    // Check if either email or username is provided along with password
-    if (!(email || username) || !password) {
-        throw new ApiError(400, "Username or Email and Password are required")
-    }
 
     const user = await User.findOne({
         $or: [{ username: username }, { email: email || username }]
@@ -89,17 +84,11 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Incorrect Password')
     }
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id.toString())
-    // toString() isleye kuki ye ObjectId("id") ke structure me hota hai
     const LoggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-    const cookieOptions = {
-        httpOnly: true,
-        signed: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-    };
+    const cookieOptions = getCookieOptions();
 
-    return res.status(201)
+    return res.status(200)
         .cookie(ACCESS_COOKIE, accessToken, cookieOptions)
         .cookie(REFRESH_COOKIE, refreshToken, cookieOptions)
         .json(
@@ -124,12 +113,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         }, {
         new: true, validateBeforeSave: false
     });
-    const cookieOptions = {
-        httpOnly: true,
-        signed: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-    };
+    const cookieOptions = getCookieOptions();
     return res.status(200)
         .clearCookie(ACCESS_COOKIE, cookieOptions)
         .clearCookie(REFRESH_COOKIE, cookieOptions)
@@ -139,41 +123,27 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-
-
-    console.log("signedCookies:", req.signedCookies);
-    console.log("headers.cookie:", req.headers.cookie);
-    const incommingRefreshToken = req.signedCookies?.[REFRESH_COOKIE] || req.cookies?.[REFRESH_COOKIE] || req.body?.refreshToken
-    if (!incommingRefreshToken) {
+    const incomingRefreshToken = req.signedCookies?.[REFRESH_COOKIE] || req.cookies?.[REFRESH_COOKIE] || req.body?.refreshToken;
+    if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthenticated access - no refresh token")
     }
     try {
-        const decodedToken = jwt.verify(incommingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+        const decodedToken = jwt.verify(incomingRefreshToken, config.jwt.refreshTokenSecret);
 
-        const user = await User.findById(decodedToken?._id)
+        const user = await User.findById(decodedToken?._id);
         if (!user) {
             throw new ApiError(401, "Invalid refresh token")
         }
-        console.log("\n=== REFRESH TOKEN DEBUG ===");
-        console.log("DB Token:      ", user?.refreshToken?.substring(0, 20) + "...");
-        console.log("Incoming Token:", incommingRefreshToken?.substring(0, 20) + "...");
-        console.log("Match Status:  ", incommingRefreshToken === user?.refreshToken);
-        console.log("===========================\n");
-        if (incommingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "refresh token is expired or used")
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "Refresh token is expired or used")
         }
-        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id.toString())
+        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id.toString());
 
-        const cookieOptions = {
-            httpOnly: true,
-            signed: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-        };
+        const cookieOptions = getCookieOptions();
 
         return res.status(200)
-            .cookie("accessToken", accessToken, cookieOptions)
-            .cookie("refreshToken", refreshToken, cookieOptions)
+            .cookie(ACCESS_COOKIE, accessToken, cookieOptions)
+            .cookie(REFRESH_COOKIE, refreshToken, cookieOptions)
             .json(
                 new ApiResponse(
                     200,
@@ -207,14 +177,11 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     );
 })
 const updateAccountDetails = asyncHandler(async (req, res) => {
-    const user = res.user;
+    // Validation handled by Zod middleware
     const { fullname, email } = req.body;
 
-    if (!(fullname && email)) {
-        throw new ApiError(400, "fullname and email are required")
-    }
     const newUser = await User.findByIdAndUpdate(
-        user?._id,
+        req.user._id,
         { $set: { fullname, email } },
         { new: true, runValidators: true }
     ).select("-password -refreshToken");
@@ -241,11 +208,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         { $set: { avatar: avatar.url } },
         { new: true, runValidators: true }
     ).select("-password -refreshToken");
-    // Delete old avatar (non-blocking)
+    // Delete old avatar (non-blocking, errors are silently ignored)
     if (user?.avatar) {
-        deleteFromCloudnary(user.avatar)
-            .then(res => console.log("Old avatar deleted:", res))
-            .catch(err => console.error("Old avatar delete failed:", err.message));
+        deleteFromCloudinary(user.avatar).catch(() => {});
     }
     return res.status(200).json(
         new ApiResponse(200, updatedUser, "User avatar updated successfully")

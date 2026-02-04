@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { FaUserPlus, FaEye, FaEyeSlash, FaFileUpload, FaUser, FaEnvelope, FaLock, FaIdBadge } from 'react-icons/fa';
-import axios from 'axios';
 import { z } from 'zod';
+import api from '../../api/axios';
 
-// Define Zod schema for validation
+// Define Zod schema for validation - matches backend
 const registerSchema = z.object({
-    fullname: z.string().min(3, "Full Name must be at least 3 characters"),
-    username: z.string().min(3, "Username must be at least 3 characters"),
+    fullname: z.string()
+        .min(2, "Full name must be at least 2 characters")
+        .max(100, "Full name must be at most 100 characters"),
+    username: z.string()
+        .min(3, "Username must be at least 3 characters")
+        .max(30, "Username must be at most 30 characters")
+        .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
     email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    role: z.string().refine(val => ["sender", "receiver"].includes(val), "Please select a valid role"),
-    avatar: z.instanceof(File, { message: "Avatar image is required" }).or(z.object({}))
+    password: z.string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(/[A-Za-z]/, "Password must contain at least one letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
+    role: z.enum(["sender", "receiver"], { errorMap: () => ({ message: "Please select a valid role" }) }),
+    avatar: z.instanceof(File, { message: "Avatar image is required" }).optional()
 });
 
 export default function Register() {
@@ -70,23 +78,25 @@ export default function Register() {
         try {
             const payload = new FormData();
             payload.append('fullname', formData.fullname);
-            payload.append('username', formData.username);
-            payload.append('email', formData.email);
+            payload.append('username', formData.username.toLowerCase());
+            payload.append('email', formData.email.toLowerCase());
             payload.append('password', formData.password);
-            payload.append('role', formData.role); // Backend expects lowercase 'sender' or 'receiver'
+            payload.append('role', formData.role);
             payload.append('avatar', formData.avatar);
 
-            const response = await axios.post('/api/v1/users/register', payload, {
+            const response = await api.post('/users/register', payload, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
             if (response.data.success) {
-                console.log("Registration successful:", response.data);
-                navigate('/login');
+                navigate('/login', { 
+                    state: { message: 'Registration successful! Please log in.' }
+                });
             }
         } catch (error) {
-            console.error("Registration Error:", error);
-            const message = error.response?.data?.message || "Registration failed. Please try again.";
+            const message = error.response?.data?.message || 
+                           error.response?.data?.errors?.[0]?.message ||
+                           "Registration failed. Please try again.";
             setApiError(message);
         } finally {
             setIsLoading(false);
@@ -220,7 +230,7 @@ export default function Register() {
                                     value={formData.password}
                                     onChange={handleChange}
                                     className={`block w-full rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'} pl-10 pr-10 p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                                    placeholder="Min 6 characters"
+                                    placeholder="Min 8 chars, letters & numbers"
                                 />
                                 <button
                                     type="button"

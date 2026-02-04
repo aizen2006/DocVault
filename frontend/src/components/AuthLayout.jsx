@@ -1,23 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import { Navigate, Outlet } from 'react-router';
+import { Navigate, Outlet, useLocation } from 'react-router';
 
 export default function AuthLayout() {
-    const { isAuthenticated, user } = useSelector((state) => state.auth);
-    const [isLoading, setIsLoading] = useState(true);
+    const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
+    const location = useLocation();
 
-    // If we are strictly checking local state, we might flash a redirect if persistence hasn't loaded 
-    // But since we will add persistence check in App.jsx top level, by the time we render routes 
-    // we should know the state. 
-    // HOWEVER, for a smoother UX, we can just rely on the Redux state.
+    // If still loading, don't redirect yet (App.jsx handles the loading screen)
+    if (isLoading) {
+        return null;
+    }
 
-    // For now, simple check.
-
-    // NOTE: In a real app with async persistence check on mount, 
-    // we might want to wait for "loading" state from auth slice.
-
+    // If not authenticated, redirect to login with the intended destination
     if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     return <Outlet />;

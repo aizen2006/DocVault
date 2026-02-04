@@ -22,6 +22,12 @@ const recordSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"
     },
-},{ timestamps:true });
+}, { timestamps: true });
 
-export const Record = mongoose.model('Record',recordSchema)
+// Indexes for better query performance
+recordSchema.index({ owner: 1, createdAt: -1 }); // For fetching user's records sorted by date
+recordSchema.index({ fileUploadUrl: 1 }, { unique: true }); // Ensure unique file URLs
+recordSchema.index({ categoryTags: 1 }); // For filtering by category
+recordSchema.index({ createdAt: -1 }); // For global sorting
+
+export const Record = mongoose.model('Record', recordSchema);

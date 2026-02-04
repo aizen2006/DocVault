@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import axios from 'axios';
 import { z } from 'zod';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../store/authSlice';
+import api from '../../api/axios';
 
 // Define Zod schema for validation
 const loginSchema = z.object({
@@ -14,7 +14,16 @@ const loginSchema = z.object({
 
 export default function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
+    const { isAuthenticated } = useSelector((state) => state.auth);
+    
+    // Redirect if already authenticated
+    const from = location.state?.from?.pathname || '/dashboard';
+    if (isAuthenticated) {
+        navigate(from, { replace: true });
+    }
+
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -57,23 +66,22 @@ export default function Login() {
         }
 
         try {
-            // API Call
-            // Send as 'username' to allow backend to search both username and email fields
-            const response = await axios.post('/api/v1/users/login', {
+            // API Call - send as 'username' to allow backend to search both username and email
+            const response = await api.post('/users/login', {
                 username: formData.email,
                 password: formData.password
             });
 
             if (response.data.success) {
-                // Successful login
-                console.log("Login successful:", response.data);
                 // Dispatch login action
-                dispatch(login({ user: response.data.data.user, token: response.data.data.accessToken }));
-                // Redirect to dashboard
-                navigate('/dashboard');
+                dispatch(login({ 
+                    user: response.data.data.user, 
+                    token: response.data.data.accessToken 
+                }));
+                // Redirect to original destination or dashboard
+                navigate(from, { replace: true });
             }
         } catch (error) {
-            console.error("Login Error:", error);
             const message = error.response?.data?.message || "An error occurred during login. Please try again.";
             setApiError(message);
         } finally {

@@ -1,38 +1,35 @@
 import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router';
-import { FaHome, FaFileAlt, FaChartBar, FaCog, FaSignOutAlt, FaBell, FaUserCircle } from 'react-icons/fa';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
+import { FaHome, FaFileAlt, FaChartBar, FaCog, FaSignOutAlt, FaBell, FaUserCircle, FaUpload, FaFolderOpen } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/authSlice';
-
-import axios from 'axios';
+import api from '../api/axios';
 
 export default function DashboardLayout() {
-    // NOTE: Removed 'role' prop as we should get it from Redux or API
-    // We will fix dynamic role in next step, for now keeping it generic or reading from user
     const { user } = useSelector(state => state.auth);
-    const role = user?.role || 'User'; // Fallback
-
+    const role = user?.role || 'user'; // lowercase to match backend
+    const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
 
     const handleLogout = async () => {
         try {
-            await axios.post('/api/v1/users/logout');
+            await api.post('/users/logout');
         } catch (error) {
             console.error("Logout failed", error);
         } finally {
             dispatch(logout());
-            // React Router will redirect via AuthLayout or we can force it
-            // window.location.href = '/login'; // Not strictly needed if <Navigate> works
+            navigate('/login', { replace: true });
         }
-    }
+    };
 
-    // Define nav items with allowed roles
+    // Define nav items with allowed roles (lowercase to match backend)
     const allNavItems = [
-        { name: 'Overview', path: '/dashboard', icon: FaHome, roles: ['Sender', 'Receiver', 'Admin'] },
-
-        { name: 'Analytics', path: '/dashboard/analytics', icon: FaChartBar, roles: ['Sender', 'Receiver', 'Admin'] },
-        { name: 'Settings', path: '/dashboard/settings', icon: FaCog, roles: ['Sender', 'Receiver', 'Admin'] },
+        { name: 'Overview', path: '/dashboard', icon: FaHome, roles: ['sender', 'receiver'] },
+        { name: 'My Records', path: '/dashboard', icon: FaUpload, roles: ['sender'], component: 'sender' },
+        { name: 'All Records', path: '/dashboard/records', icon: FaFolderOpen, roles: ['receiver'] },
+        { name: 'Analytics', path: '/dashboard/analytics', icon: FaChartBar, roles: ['sender', 'receiver'] },
+        { name: 'Settings', path: '/dashboard/settings', icon: FaCog, roles: ['sender', 'receiver'] },
     ];
 
     const navItems = allNavItems.filter(item => item.roles.includes(role));
@@ -82,7 +79,7 @@ export default function DashboardLayout() {
                             <FaUserCircle className="w-full h-full text-gray-400" />
                         </div>
                         <div className="ml-3 overflow-hidden">
-                            <p className="text-sm font-medium truncate">{user?.fullName || user?.username || 'User'}</p>
+                            <p className="text-sm font-medium truncate">{user?.fullname || user?.username || 'User'}</p>
                             <p className="text-xs text-gray-500 capitalize">{role}</p>
                         </div>
                     </div>
@@ -99,10 +96,13 @@ export default function DashboardLayout() {
                             <FaBell className="w-5 h-5" />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#151725]"></span>
                         </button>
-                        {(role === 'Sender' || role === 'sender') && (
-                            <button className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity flex items-center">
+                        {role === 'sender' && (
+                            <Link 
+                                to="/dashboard"
+                                className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity flex items-center"
+                            >
                                 + New Record
-                            </button>
+                            </Link>
                         )}
                     </div>
                 </header>

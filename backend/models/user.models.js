@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['sender', 'receiver'],
-        default: 'user',
+        required: [true, 'Role is required and must be either "sender" or "receiver"'],
     },
     email: {
         type: String,
@@ -39,6 +39,11 @@ const userSchema = new mongoose.Schema({
         }
     ],
 }, { timestamps: true });
+
+// Indexes for better query performance
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ role: 1 });
 
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
