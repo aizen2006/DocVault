@@ -4,13 +4,29 @@ This documentation describes the API endpoints for the DocVault backend service.
 
 **Base URL**: `http://localhost:8000/api/v1`
 
+---
+
 ## Authentication
 
-The API uses JSON Web Tokens (JWT) for authentication.
-- **Access Token**: Short-lived, passed via `accessToken` cookie or Authorization header.
-- **Refresh Token**: Long-lived, passed via `refreshToken` cookie to obtain new access tokens.
+The API uses JSON Web Tokens (JWT) for authentication with httpOnly cookies.
 
-Most endpoints require a valid Access Token found in the Cookies.
+- **Access Token**: Short-lived (default: 15m), stored in signed `accessToken` cookie.
+- **Refresh Token**: Long-lived (default: 7d), stored in signed `refreshToken` cookie.
+
+Most endpoints require a valid Access Token. The token is automatically read from:
+1. Signed cookies (`req.signedCookies.accessToken`)
+2. Regular cookies (`req.cookies.accessToken`)
+3. Authorization header (`Bearer <token>`)
+
+### Role-Based Access Control (RBAC)
+
+Users have one of two roles:
+- **sender**: Can create and manage their own records
+- **receiver**: Can view all records in the system
+
+Routes are protected by role. Attempting to access a route without the required role returns `403 Forbidden`.
+
+---
 
 ## Response Format
 
@@ -30,10 +46,45 @@ All API responses follow a standard structure:
 ```json
 {
   "statusCode": 400,
-  "data": null,
   "message": "Error description",
   "success": false,
-  "errors": []
+  "errors": [
+    { "field": "email", "message": "Invalid email address" }
+  ]
+}
+```
+
+---
+
+## Health Check
+
+### GET `/health`
+
+Check the health status of the API and database connection.
+
+- **Authentication**: None required
+- **Rate Limiting**: Exempt
+
+**Success Response (200):**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-02-04T12:00:00.000Z",
+  "uptime": 12345.67,
+  "environment": "production",
+  "version": "1.0.0",
+  "database": {
+    "status": "connected",
+    "readyState": 1
+  }
+}
+```
+
+**Degraded Response (503):**
+```json
+{
+  "status": "degraded",
+  "database": { "status": "disconnected" }
 }
 ```
 
@@ -43,91 +94,191 @@ All API responses follow a standard structure:
 
 Base path: `/users`
 
-### Register User
+### POST `/register`
+
 Register a new user account.
 
-- **URL**: `/register`
-- **Method**: `POST`
 - **Content-Type**: `multipart/form-data`
-- **Body**:
-  - `fullname` (string, required)
-  - `email` (string, required)
-  - `username` (string, required)
-  - `password` (string, required)
-  - `role` (string, required)
-  - `avatar` (file, required)
-- **Success Response**: `201 Created` with user details (excluding password).
+- **Authentication**: None
 
-### Login User
+**Request Body:**
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `fullname` | string | Yes | 2-100 characters |
+| `username` | string | Yes | 3-30 chars, alphanumeric + underscore only |
+| `email` | string | Yes | Valid email format |
+| `password` | string | Yes | Min 8 chars, must contain letter and number |
+| `role` | string | Yes | Must be `sender` or `receiver` |
+| `avatar` | file | Yes | Image file (jpeg, png, gif, webp) |
+
+**Success Response**: `201 Created`
+```json
+{
+  "statusCode": 201,
+  "data": {
+    "_id": "...",
+    "fullname": "John Doe",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "role": "sender",
+    "avatar": "https://res.cloudinary.com/...",
+    "createdAt": "...",
+    "updatedAt": "..."
+  },
+  "message": "User registered successfully",
+  "success": true
+}
+```
+
+**Error Responses:**
+- `400`: Validation error (missing fields, invalid format, weak password)
+- `409`: User with email or username already exists
+
+---
+
+### POST `/login`
+
 Authenticate a user and receive access/refresh tokens.
 
-- **URL**: `/login`
-- **Method**: `POST`
 - **Content-Type**: `application/json`
-- **Body**:
-  - `username` (string, required)
-  - `password` (string, required)
-- **Success Response**: `200 OK`
-  - Sets `accessToken` and `refreshToken` cookies.
-  - Returns user details and tokens in `data`.
+- **Authentication**: None
 
-### Logout User
-Clear authentication cookies.
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `username` | string | Optional* | Username to login with |
+| `email` | string | Optional* | Email to login with |
+| `password` | string | Yes | User's password |
 
-- **URL**: `/logout`
-- **Method**: `POST`
+*Either `username` or `email` is required.
+
+**Success Response**: `200 OK`
+- Sets `accessToken` and `refreshToken` as httpOnly signed cookies.
+
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "user": { ... },
+    "accessToken": "eyJhbG...",
+    "refreshToken": "eyJhbG..."
+  },
+  "message": "User successfully logined",
+  "success": true
+}
+```
+
+**Error Responses:**
+- `400`: Missing credentials or incorrect password
+- `404`: User not found
+
+---
+
+### POST `/logout`
+
+Clear authentication cookies and invalidate refresh token.
+
 - **Authentication**: Required
-- **Success Response**: `200 OK`
 
-### Refresh Access Token
+**Success Response**: `200 OK`
+- Clears `accessToken` and `refreshToken` cookies.
+
+---
+
+### POST `/refresh-token`
+
 Get a new access token using a valid refresh token.
 
-- **URL**: `/refresh-token`
-- **Method**: `POST`
-- **Body**:
-  - `refreshToken` (string, optional if cookie is present)
-- **Success Response**: `200 OK` with new tokens.
+- **Authentication**: Refresh token required (cookie or body)
 
-### Get Current User
+**Request Body (optional if cookie present):**
+```json
+{
+  "refreshToken": "eyJhbG..."
+}
+```
+
+**Success Response**: `200 OK`
+- Sets new `accessToken` and `refreshToken` cookies.
+
+**Error Responses:**
+- `401`: No refresh token, invalid token, or token expired/used
+
+---
+
+### GET `/me`
+
 Get details of the currently logged-in user.
 
-- **URL**: `/me`
-- **Method**: `GET`
 - **Authentication**: Required
-- **Success Response**: `200 OK` with user details.
 
-### Change Password
+**Success Response**: `200 OK`
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "_id": "...",
+    "fullname": "John Doe",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "role": "sender",
+    "avatar": "https://..."
+  },
+  "message": "Current user fetched successfully",
+  "success": true
+}
+```
+
+---
+
+### POST `/change-password`
+
 Update the user's password.
 
-- **URL**: `/change-password`
-- **Method**: `POST`
 - **Authentication**: Required
-- **Body**:
-  - `oldPassword` (string, required)
-  - `newPassword` (string, required)
-- **Success Response**: `200 OK`
 
-### Update Account Details
+**Request Body:**
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `oldPassword` | string | Yes | Current password |
+| `newPassword` | string | Yes | Min 8 chars, letter + number, must differ from old |
+
+**Success Response**: `200 OK`
+
+**Error Responses:**
+- `400`: Old password incorrect or validation failed
+
+---
+
+### PUT `/update-details`
+
 Update user profile information.
 
-- **URL**: `/update-details`
-- **Method**: `PUT`
 - **Authentication**: Required
-- **Body**:
-  - `fullname` (string, required)
-  - `email` (string, required)
-- **Success Response**: `200 OK` with updated user details.
 
-### Update Avatar
+**Request Body:**
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `fullname` | string | Yes | 2-100 characters |
+| `email` | string | Yes | Valid email format |
+
+**Success Response**: `200 OK` with updated user details.
+
+---
+
+### PUT `/update-avatar`
+
 Update the user's profile picture.
 
-- **URL**: `/update-avatar`
-- **Method**: `PUT`
 - **Authentication**: Required
 - **Content-Type**: `multipart/form-data`
-- **Body**:
-  - `avatar` (file, required)
-- **Success Response**: `200 OK` with updated user details.
+
+**Request Body:**
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `avatar` | file | Yes | Image file (jpeg, png, gif, webp), max 10MB |
+
+**Success Response**: `200 OK` with updated user details.
 
 ---
 
@@ -135,27 +286,82 @@ Update the user's profile picture.
 
 Base path: `/sender`
 
-### Create Record
+**All sender endpoints require:**
+- Authentication (valid access token)
+- Role: `sender`
+
+---
+
+### POST `/create-record`
+
 Upload a new file record.
 
-- **URL**: `/create-record`
-- **Method**: `POST`
-- **Authentication**: Required
 - **Content-Type**: `multipart/form-data`
-- **Body**:
-  - `fileName` (string, required)
-  - `description` (string, required)
-  - `categoryTags` (string, required)
-  - `file` (file, required)
-- **Success Response**: `201 Created` with created record details.
 
-### Get User Records
-Get all records created by the authenticated user.
+**Request Body:**
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `fileName` | string | Yes | 1-255 characters |
+| `description` | string | No | Max 1000 characters |
+| `categoryTags` | string | Yes | One of: `Document`, `Images`, `Audio`, `PDF`, `Spreadsheet`, `PPT` |
+| `file` | file | Yes | Max 10MB, allowed types: images, PDF, docs, spreadsheets, presentations, audio |
 
-- **URL**: `/records`
-- **Method**: `GET`
-- **Authentication**: Required
-- **Success Response**: `200 OK` with list of records.
+**Success Response**: `201 Created`
+```json
+{
+  "statusCode": 201,
+  "data": {
+    "_id": "...",
+    "fileName": "Report Q4",
+    "description": "Quarterly financial report",
+    "categoryTags": "PDF",
+    "fileUploadUrl": "https://res.cloudinary.com/...",
+    "owner": "...",
+    "createdAt": "...",
+    "updatedAt": "..."
+  },
+  "message": "Record created successfully",
+  "success": true
+}
+```
+
+**Error Responses:**
+- `400`: Validation error or file missing
+- `403`: User is not a sender
+- `500`: File upload failed
+
+---
+
+### GET `/records`
+
+Get all records created by the authenticated user (paginated).
+
+**Query Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | number | 1 | Page number |
+| `limit` | number | 10 | Items per page (max 50) |
+| `category` | string | - | Filter by categoryTags |
+
+**Success Response**: `200 OK`
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "records": [ ... ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 25,
+      "totalPages": 3,
+      "hasNextPage": true,
+      "hasPrevPage": false
+    }
+  },
+  "message": "User records fetched successfully",
+  "success": true
+}
+```
 
 ---
 
@@ -163,13 +369,58 @@ Get all records created by the authenticated user.
 
 Base path: `/receiver`
 
-### Get All Records
-Get all records available in the system.
+**All receiver endpoints require:**
+- Authentication (valid access token)
+- Role: `receiver`
 
-- **URL**: `/getAllRecords`
-- **Method**: `GET`
-- **Authentication**: Public
-- **Success Response**: `200 OK` with list of all records including owner details.
+---
+
+### GET `/getAllRecords`
+
+Get all records in the system (paginated).
+
+**Query Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | number | 1 | Page number |
+| `limit` | number | 10 | Items per page (max 50) |
+| `category` | string | - | Filter by categoryTags |
+| `search` | string | - | Search by fileName (case-insensitive) |
+
+**Success Response**: `200 OK`
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "records": [
+      {
+        "_id": "...",
+        "fileName": "Report Q4",
+        "description": "...",
+        "categoryTags": "PDF",
+        "fileUploadUrl": "https://...",
+        "owner": {
+          "_id": "...",
+          "fullname": "John Doe",
+          "username": "johndoe",
+          "avatar": "https://..."
+        },
+        "createdAt": "..."
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 100,
+      "totalPages": 10,
+      "hasNextPage": true,
+      "hasPrevPage": false
+    }
+  },
+  "message": "All records fetched successfully",
+  "success": true
+}
+```
 
 ---
 
@@ -177,18 +428,103 @@ Get all records available in the system.
 
 Base path: `/records`
 
-### View Record
+---
+
+### GET `/view-record/:recordId`
+
 Get details of a specific record by ID.
 
-- **URL**: `/view-record/:recordId`
-- **Method**: `GET`
-- **Authentication**: Public
-- **Success Response**: `200 OK` with record details.
+- **Authentication**: Required
+- **Roles**: Both `sender` and `receiver` allowed
 
-## Error Codes
+**URL Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `recordId` | string | MongoDB ObjectId of the record |
 
-- `400`: Bad Request (Missing fields, validation error)
-- `401`: Unauthorized (Invalid token, expired token)
-- `404`: Not Found (User or Record not found)
-- `409`: Conflict (User already exists)
-- `500`: Internal Server Error
+**Success Response**: `200 OK`
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "_id": "...",
+    "fileName": "Report Q4",
+    "description": "...",
+    "categoryTags": "PDF",
+    "fileUploadUrl": "https://...",
+    "owner": {
+      "_id": "...",
+      "fullname": "John Doe",
+      "username": "johndoe",
+      "avatar": "https://..."
+    },
+    "createdAt": "...",
+    "updatedAt": "..."
+  },
+  "message": "Record fetched successfully",
+  "success": true
+}
+```
+
+**Error Responses:**
+- `400`: Invalid record ID format
+- `401`: Not authenticated
+- `403`: Insufficient permissions
+- `404`: Record not found
+
+---
+
+## Error Codes Reference
+
+| Code | Meaning | Common Causes |
+|------|---------|---------------|
+| `400` | Bad Request | Missing fields, validation error, invalid file type |
+| `401` | Unauthorized | Missing token, invalid token, expired token |
+| `403` | Forbidden | Insufficient role permissions |
+| `404` | Not Found | User or record doesn't exist |
+| `409` | Conflict | Duplicate email/username |
+| `413` | Payload Too Large | File exceeds 10MB limit |
+| `429` | Too Many Requests | Rate limit exceeded (100 req/15min) |
+| `500` | Internal Server Error | Server-side error |
+
+---
+
+## Rate Limiting
+
+All API endpoints (except `/health`) are rate limited:
+
+- **Window**: 15 minutes
+- **Max Requests**: 100 per window (1000 in development)
+- **Response on limit**: `429 Too Many Requests`
+
+```json
+{
+  "success": false,
+  "message": "Too many requests, please try again later."
+}
+```
+
+---
+
+## File Upload Limits
+
+| Constraint | Value |
+|------------|-------|
+| Max file size | 10 MB |
+| Allowed image types | jpeg, png, gif, webp |
+| Allowed document types | pdf, doc, docx, xls, xlsx, ppt, pptx, txt, csv |
+| Allowed audio types | mp3, wav, ogg |
+
+---
+
+## Cookie Configuration
+
+All authentication cookies are configured with:
+
+| Setting | Development | Production |
+|---------|-------------|------------|
+| `httpOnly` | true | true |
+| `signed` | true | true |
+| `secure` | false | true |
+| `sameSite` | lax | strict |
+| `maxAge` | 7 days | 7 days |

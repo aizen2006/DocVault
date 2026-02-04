@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import api from './api/axios';
 import { login, authCheckComplete } from './store/authSlice';
-import Login from './routes/Auth/login';
+import Login from './routes/Auth/Login';
 import Register from './routes/Auth/Register';
 import LandingPage from './routes/LandingPage';
 import DashboardLayout from './components/DashboardLayout';
