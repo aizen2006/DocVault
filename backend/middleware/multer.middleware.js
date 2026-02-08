@@ -1,5 +1,6 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import crypto from "crypto";
 import { ApiError } from "../utils/ApiError.js";
 
@@ -36,6 +37,12 @@ const ALLOWED_MIME_TYPES = {
     ]
 };
 
+// Ensure upload directory exists (both locally and in production environments)
+const uploadDir = path.resolve("public", "temp");
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // Generate a secure unique filename
 const generateSecureFilename = (originalname) => {
     const ext = path.extname(originalname).toLowerCase();
@@ -46,7 +53,7 @@ const generateSecureFilename = (originalname) => {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, "./public/temp");
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const secureFilename = generateSecureFilename(file.originalname);

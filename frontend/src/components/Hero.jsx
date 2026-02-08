@@ -59,8 +59,8 @@ export default function Hero() {
 
                 {/* Dashboard Preview Image (Placeholder Style) */}
                 <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 40, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
                     className="mt-16 relative rounded-xl bg-gray-900 p-2 sm:p-4 shadow-2xl border border-gray-800"
                 >
