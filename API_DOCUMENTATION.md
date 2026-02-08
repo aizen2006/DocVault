@@ -26,6 +26,8 @@ Users have one of two roles:
 
 Routes are protected by role. Attempting to access a route without the required role returns `403 Forbidden`.
 
+**Password reset (forgot password):** The backend can send the reset link by email when `MAIL_ID` and `MAIL_PASSWORD` are set in the environment (Gmail SMTP by default). If not set, the reset URL is returned in the API response for dev/demo.
+
 ---
 
 ## Response Format
@@ -146,11 +148,11 @@ Authenticate a user and receive access/refresh tokens.
 **Request Body:**
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `username` | string | Optional* | Username to login with |
-| `email` | string | Optional* | Email to login with |
+| `username` | string | Optional* | Email or username (backend looks up by both) |
+| `email` | string | Optional* | Email or username (same as above) |
 | `password` | string | Yes | User's password |
 
-*Either `username` or `email` is required.
+*Either `username` or `email` is required. The backend accepts a single credential field; frontend typically sends it as `username`.
 
 **Success Response**: `200 OK`
 - Sets `accessToken` and `refreshToken` as httpOnly signed cookies.
@@ -203,6 +205,75 @@ Get a new access token using a valid refresh token.
 
 **Error Responses:**
 - `401`: No refresh token, invalid token, or token expired/used
+
+---
+
+### POST `/forgot-password`
+
+Request a password reset link. If `MAIL_ID` and `MAIL_PASSWORD` are set in the backend environment, the reset link is sent by email (Gmail SMTP). Otherwise, the link is returned in the response for dev/demo.
+
+- **Content-Type**: `application/json`
+- **Authentication**: None
+
+**Request Body:**
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `email` | string | Yes | Valid email address |
+
+**Success Response**: `200 OK`
+
+When email is configured (mail sent):
+```json
+{
+  "statusCode": 200,
+  "data": null,
+  "message": "If an account with that email exists, a reset link has been sent.",
+  "success": true
+}
+```
+
+When email is not configured (dev/demo), response includes the reset URL:
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "resetToken": "hex-token",
+    "resetUrl": "http://localhost:5173/reset-password/hex-token"
+  },
+  "message": "Password reset link generated successfully",
+  "success": true
+}
+```
+
+For security, the same generic message is returned whether the user exists or not when mail is configured.
+
+---
+
+### POST `/reset-password`
+
+Set a new password using the token received by email or from the forgot-password response.
+
+- **Content-Type**: `application/json`
+- **Authentication**: None
+
+**Request Body:**
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `token` | string | Yes | Reset token (from email link or forgot-password response) |
+| `newPassword` | string | Yes | Min 8 chars, at least one letter and one number |
+
+**Success Response**: `200 OK`
+```json
+{
+  "statusCode": 200,
+  "data": null,
+  "message": "Password has been reset successfully",
+  "success": true
+}
+```
+
+**Error Responses:**
+- `400`: Invalid or expired password reset token
 
 ---
 
@@ -359,6 +430,55 @@ Get all records created by the authenticated user (paginated).
     }
   },
   "message": "User records fetched successfully",
+  "success": true
+}
+```
+
+---
+
+### GET `/browse`
+
+Get all records in the system for browsing (same shape as receiver's getAllRecords). Senders can use this to explore records with pagination, category filter, and search.
+
+**Query Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | number | 1 | Page number |
+| `limit` | number | 10 | Items per page (max 50) |
+| `category` | string | - | Filter by categoryTags |
+| `search` | string | - | Search by fileName (case-insensitive) |
+
+**Success Response**: `200 OK`
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "records": [
+      {
+        "_id": "...",
+        "fileName": "Report Q4",
+        "description": "...",
+        "categoryTags": "PDF",
+        "fileUploadUrl": "https://...",
+        "owner": {
+          "_id": "...",
+          "fullname": "John Doe",
+          "username": "johndoe",
+          "avatar": "https://..."
+        },
+        "createdAt": "..."
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 100,
+      "totalPages": 10,
+      "hasNextPage": true,
+      "hasPrevPage": false
+    }
+  },
+  "message": "Browse records fetched successfully",
   "success": true
 }
 ```
