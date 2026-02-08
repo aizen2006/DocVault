@@ -91,17 +91,17 @@ export default function Login() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8 font-sans">
-            <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-2xl shadow-xl">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0B0C15] px-4 sm:px-6 lg:px-8 font-sans">
+            <div className="w-full max-w-md space-y-8 bg-white dark:bg-[#151725] dark:border dark:border-gray-800 p-10 rounded-2xl shadow-xl">
                 {/* Header Section */}
                 <div className="text-center">
-                    <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 mb-4">
+                    <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-4">
                         <FaLock className="h-6 w-6" />
                     </div>
-                    <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+                    <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                         DocVault
                     </h2>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         Welcome back! Please enter your details.
                     </p>
                 </div>
@@ -111,7 +111,7 @@ export default function Login() {
                     <div className="space-y-5">
                         {/* Email/Username Input */}
                         <div>
-                            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">
+                            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">
                                 Email or Username
                             </label>
                             <input
@@ -123,14 +123,14 @@ export default function Login() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="Enter email or username"
-                                className={`block w-full rounded-lg border ${errors.email ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'} p-3 text-gray-900 placeholder:text-gray-400 focus:ring-4 focus:outline-none transition-all duration-200 sm:text-sm`}
+                                className={`block w-full rounded-lg border bg-white dark:bg-gray-900 ${errors.email ? 'border-red-500 ring-red-200 dark:ring-red-900/30' : 'border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-200 dark:focus:ring-blue-500'} p-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:outline-none transition-all duration-200 sm:text-sm`}
                             />
-                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+                            {errors.email && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.email}</p>}
                         </div>
 
                         {/* Password Input */}
                         <div>
-                            <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1">
+                            <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">
                                 Password
                             </label>
                             <div className="relative">
@@ -143,17 +143,17 @@ export default function Login() {
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="••••••••"
-                                    className={`block w-full rounded-lg border ${errors.password ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'} p-3 pr-10 text-gray-900 placeholder:text-gray-400 focus:ring-4 focus:outline-none transition-all duration-200 sm:text-sm`}
+                                    className={`block w-full rounded-lg border bg-white dark:bg-gray-900 ${errors.password ? 'border-red-500 ring-red-200 dark:ring-red-900/30' : 'border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-200 dark:focus:ring-blue-500'} p-3 pr-10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:outline-none transition-all duration-200 sm:text-sm`}
                                 />
                                 <button
                                     type="button"
-                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                                     onClick={togglePasswordVisibility}
                                 >
                                     {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
                                 </button>
                             </div>
-                            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+                            {errors.password && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.password}</p>}
                         </div>
                     </div>
 
@@ -164,9 +164,9 @@ export default function Login() {
                                 id="remember-me"
                                 name="remember-me"
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-900"
                             />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-500">
+                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-500 dark:text-gray-400">
                                 Remember me
                             </label>
                         </div>
@@ -174,7 +174,7 @@ export default function Login() {
                         <div className="text-sm">
                             <Link
                                 to="/forgot-password"
-                                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                             >
                                 Forgot password?
                             </Link>
@@ -183,7 +183,7 @@ export default function Login() {
 
                     {/* Submit Button */}
                     <div>
-                        {apiError && <p className="mb-4 text-sm text-center text-red-500 font-medium">{apiError}</p>}
+                        {apiError && <p className="mb-4 text-sm text-center text-red-500 dark:text-red-400 font-medium">{apiError}</p>}
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -204,9 +204,9 @@ export default function Login() {
                     </div>
 
                     {/* Sign Up Link */}
-                    <div className="text-center text-sm text-gray-500">
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                         Don't have an account?{' '}
-                        <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 hover:underline transition-all">
+                        <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-all">
                             Sign up
                         </Link>
                     </div>

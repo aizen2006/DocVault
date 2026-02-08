@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router';
-import SenderDashboard from './SenderDashboard';
+import SenderOverview from './SenderOverview';
 import ReceiverDashboard from './ReceiverDashboard';
 
 export default function DashboardHome() {
@@ -11,9 +11,9 @@ export default function DashboardHome() {
         return <Navigate to="/login" replace />;
     }
 
-    // Role-based rendering
+    // Role-based rendering: sender sees Overview, receiver sees All Records list
     if (user.role === 'sender' || user.role === 'Sender') {
-        return <SenderDashboard />;
+        return <SenderOverview />;
     } else if (user.role === 'receiver' || user.role === 'Receiver') {
         return <ReceiverDashboard />;
     } else {

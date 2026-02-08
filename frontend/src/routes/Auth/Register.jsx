@@ -104,16 +104,16 @@ export default function Register() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8 py-12 font-sans">
-            <div className="w-full max-w-2xl space-y-8 bg-white p-10 rounded-2xl shadow-xl">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0B0C15] px-4 sm:px-6 lg:px-8 py-12 font-sans">
+            <div className="w-full max-w-2xl space-y-8 bg-white dark:bg-[#151725] dark:border dark:border-gray-800 p-10 rounded-2xl shadow-xl">
                 <div className="text-center">
-                    <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 mb-4">
+                    <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-4">
                         <FaUserPlus className="h-6 w-6" />
                     </div>
-                    <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+                    <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                         Create your account
                     </h2>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         Join DocVault and manage your documents securely.
                     </p>
                 </div>
@@ -122,9 +122,9 @@ export default function Register() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Full Name */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">Full Name</label>
                             <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 dark:text-gray-500">
                                     <FaIdBadge />
                                 </span>
                                 <input
@@ -133,18 +133,18 @@ export default function Register() {
                                     required
                                     value={formData.fullname}
                                     onChange={handleChange}
-                                    className={`block w-full rounded-lg border ${errors.fullname ? 'border-red-500' : 'border-gray-300'} pl-10 p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                    className={`block w-full rounded-lg border bg-white dark:bg-gray-900 ${errors.fullname ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} pl-10 p-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 sm:text-sm`}
                                     placeholder="John Doe"
                                 />
                             </div>
-                            {errors.fullname && <p className="mt-1 text-xs text-red-500">{errors.fullname}</p>}
+                            {errors.fullname && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.fullname}</p>}
                         </div>
 
                         {/* Username */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Username</label>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">Username</label>
                             <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 dark:text-gray-500">
                                     <FaUser />
                                 </span>
                                 <input
@@ -153,18 +153,18 @@ export default function Register() {
                                     required
                                     value={formData.username}
                                     onChange={handleChange}
-                                    className={`block w-full rounded-lg border ${errors.username ? 'border-red-500' : 'border-gray-300'} pl-10 p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                    className={`block w-full rounded-lg border bg-white dark:bg-gray-900 ${errors.username ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} pl-10 p-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 sm:text-sm`}
                                     placeholder="johndoe123"
                                 />
                             </div>
-                            {errors.username && <p className="mt-1 text-xs text-red-500">{errors.username}</p>}
+                            {errors.username && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.username}</p>}
                         </div>
 
                         {/* Email */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">Email Address</label>
                             <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 dark:text-gray-500">
                                     <FaEnvelope />
                                 </span>
                                 <input
@@ -173,33 +173,33 @@ export default function Register() {
                                     required
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`block w-full rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-300'} pl-10 p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                    className={`block w-full rounded-lg border bg-white dark:bg-gray-900 ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} pl-10 p-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 sm:text-sm`}
                                     placeholder="john@example.com"
                                 />
                             </div>
-                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+                            {errors.email && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.email}</p>}
                         </div>
 
                         {/* Role selection */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Role</label>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">Role</label>
                             <select
                                 name="role"
                                 value={formData.role}
                                 onChange={handleChange}
-                                className={`block w-full rounded-lg border ${errors.role ? 'border-red-500' : 'border-gray-300'} p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                className={`block w-full rounded-lg border bg-white dark:bg-gray-900 ${errors.role ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} p-3 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 sm:text-sm`}
                             >
                                 <option value="">Select Role...</option>
                                 <option value="sender">Sender (Uploads Docs)</option>
                                 <option value="receiver">Receiver (Views Docs)</option>
                             </select>
-                            {errors.role && <p className="mt-1 text-xs text-red-500">{errors.role}</p>}
+                            {errors.role && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.role}</p>}
                         </div>
 
                         {/* Avatar Upload */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Avatar</label>
-                            <div className={`relative flex items-center justify-center w-full border-2 border-dashed ${errors.avatar ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 hover:bg-gray-50 transition-colors`}>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">Avatar</label>
+                            <div className={`relative flex items-center justify-center w-full border-2 border-dashed ${errors.avatar ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors`}>
                                 <input
                                     type="file"
                                     name="avatar"
@@ -207,20 +207,20 @@ export default function Register() {
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
                                 <div className="text-center">
-                                    <FaFileUpload className="mx-auto h-6 w-6 text-gray-400" />
-                                    <span className="mt-1 block text-xs text-gray-500 truncate max-w-[150px]">
+                                    <FaFileUpload className="mx-auto h-6 w-6 text-gray-400 dark:text-gray-500" />
+                                    <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">
                                         {formData.avatar ? formData.avatar.name : "Upload Avatar"}
                                     </span>
                                 </div>
                             </div>
-                            {errors.avatar && <p className="mt-1 text-xs text-red-500">{errors.avatar}</p>}
+                            {errors.avatar && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.avatar}</p>}
                         </div>
 
                         {/* Password */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1">Password</label>
                             <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 dark:text-gray-500">
                                     <FaLock />
                                 </span>
                                 <input
@@ -229,23 +229,23 @@ export default function Register() {
                                     required
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`block w-full rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'} pl-10 pr-10 p-3 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                    className={`block w-full rounded-lg border bg-white dark:bg-gray-900 ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} pl-10 pr-10 p-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 sm:text-sm`}
                                     placeholder="Min 8 chars, letters & numbers"
                                 />
                                 <button
                                     type="button"
-                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
                             </div>
-                            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+                            {errors.password && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.password}</p>}
                         </div>
                     </div>
 
                     <div>
-                        {apiError && <p className="mb-4 text-sm text-center text-red-500 font-medium">{apiError}</p>}
+                        {apiError && <p className="mb-4 text-sm text-center text-red-500 dark:text-red-400 font-medium">{apiError}</p>}
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -265,9 +265,9 @@ export default function Register() {
                         </button>
                     </div>
 
-                    <div className="text-center text-sm text-gray-500">
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                         Already have an account?{' '}
-                        <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 hover:underline">
+                        <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">
                             Log in
                         </Link>
                     </div>

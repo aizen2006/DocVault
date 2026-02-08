@@ -13,6 +13,7 @@ import DashboardHome from './routes/Dashboard/DashboardHome';
 import SenderDashboard from './routes/Dashboard/SenderDashboard';
 import ReceiverDashboard from './routes/Dashboard/ReceiverDashboard';
 import DocumentDetail from './routes/Dashboard/DocumentDetail';
+import BrowseRecords from './routes/Dashboard/BrowseRecords';
 import AuthLayout from './components/AuthLayout';
 
 // Loading spinner component
@@ -64,8 +65,10 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
+            <Route path="my-records" element={<SenderDashboard />} />
             <Route path="records" element={<ReceiverDashboard />} />
             <Route path="records/:id" element={<DocumentDetail />} />
+            <Route path="browse" element={<BrowseRecords />} />
             <Route path="analytics" element={<div className="p-8">Analytics View (Coming Soon)</div>} />
             <Route path="settings" element={<div className="p-8">Settings View</div>} />
           </Route>

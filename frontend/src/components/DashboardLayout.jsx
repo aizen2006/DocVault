@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
-import { FaHome, FaChartBar, FaCog, FaSignOutAlt, FaBell, FaUserCircle, FaUpload, FaFolderOpen } from 'react-icons/fa';
+import { FaHome, FaChartBar, FaCog, FaSignOutAlt, FaBell, FaUserCircle, FaUpload, FaFolderOpen, FaGlobe } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/authSlice';
 import api from '../api/axios';
@@ -27,7 +27,8 @@ export default function DashboardLayout() {
     // Define nav items with allowed roles (lowercase to match backend)
     const allNavItems = [
         { name: 'Overview', path: '/dashboard', icon: FaHome, roles: ['sender', 'receiver'] },
-        { name: 'My Records', path: '/dashboard', icon: FaUpload, roles: ['sender'], component: 'sender' },
+        { name: 'My Records', path: '/dashboard/my-records', icon: FaUpload, roles: ['sender'] },
+        { name: 'Browse records', path: '/dashboard/browse', icon: FaGlobe, roles: ['sender'] },
         { name: 'All Records', path: '/dashboard/records', icon: FaFolderOpen, roles: ['receiver'] },
         { name: 'Analytics', path: '/dashboard/analytics', icon: FaChartBar, roles: ['sender', 'receiver'] },
         { name: 'Settings', path: '/dashboard/settings', icon: FaCog, roles: ['sender', 'receiver'] },
@@ -140,7 +141,7 @@ export default function DashboardLayout() {
                         {role === 'sender' && (
                             <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}>
                                 <Link
-                                    to="/dashboard"
+                                    to="/dashboard/my-records"
                                     className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-full hover:opacity-95 transition-opacity flex items-center shadow-sm"
                                 >
                                     + New Record

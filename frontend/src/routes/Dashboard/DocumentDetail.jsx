@@ -34,6 +34,13 @@ export default function DocumentDetail() {
         // Implement real update API here in future steps
     };
 
+    const fileUrl = metadata.fileUploadUrl;
+    const handleDownload = () => {
+        if (fileUrl) {
+            window.open(fileUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
     if (loading) {
         return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center gap-3">
@@ -105,7 +112,13 @@ export default function DocumentDetail() {
                                 <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-white dark:bg-[#151725] border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center">
                                     <FaEdit className="mr-2" /> Edit Metadata
                                 </button>
-                                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center shadow-lg shadow-blue-500/30">
+                                <button
+                                    type="button"
+                                    onClick={handleDownload}
+                                    disabled={!fileUrl}
+                                    title={!fileUrl ? 'File not available' : 'Open file'}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
                                     Download
                                 </button>
                             </>
