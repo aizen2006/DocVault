@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { z } from 'zod';
@@ -17,12 +17,13 @@ export default function Login() {
     const location = useLocation();
     const dispatch = useDispatch();
     const { isAuthenticated } = useSelector((state) => state.auth);
-    
-    // Redirect if already authenticated
     const from = location.state?.from?.pathname || '/dashboard';
-    if (isAuthenticated) {
-        navigate(from, { replace: true });
-    }
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, from, navigate]);
 
     const [formData, setFormData] = useState({
         email: '',

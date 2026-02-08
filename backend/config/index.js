@@ -84,10 +84,28 @@ const config = {
         }
     },
 
-    // CORS
+    // CORS: required for cross-origin cookies. Use a function so localhost + CORS_ORIGIN both work (register/login from local or deployed frontend).
     cors: {
-        origin: process.env.CORS_ORIGIN || (isProduction ? undefined : 'http://localhost:5173'),
-        credentials: true
+        origin(origin, callback) {
+            const normalize = (url) => (url || '').trim().replace(/\/$/, '');
+            const allowed = new Set([
+                'http://localhost:5173',
+                'http://127.0.0.1:5173',
+                'http://localhost:3000',
+                'http://127.0.0.1:3000',
+                ...(process.env.CORS_ORIGIN
+                    ? process.env.CORS_ORIGIN.split(',').map(normalize).filter(Boolean)
+                    : []),
+            ]);
+            if (!origin) return callback(null, true);
+            if (allowed.has(origin) || allowed.has(normalize(origin))) return callback(null, true);
+            if (isProduction && !process.env.CORS_ORIGIN) return callback(null, true);
+            return callback(null, false);
+        },
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+        optionsSuccessStatus: 204,
     },
 
     // Rate limiting

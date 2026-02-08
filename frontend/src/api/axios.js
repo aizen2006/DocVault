@@ -3,8 +3,9 @@ import store from '../store/store';
 import { logout, login } from '../store/authSlice';
 
 // Base URL:
-// - In development, Vite dev server proxies `/api` to the local backend.
-// - In production (Vercel), we call the deployed backend directly via VITE_API_BASE_URL.
+// - In development, Vite dev server proxies `/api` to the local backend (or use /api/v1 if proxy is used).
+// - In production (e.g. Vercel), set VITE_API_BASE_URL to your backend URL including path, e.g. https://your-api.onrender.com/api/v1
+//   (no trailing slash). Otherwise requests go to same origin and will fail.
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL
         ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}`

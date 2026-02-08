@@ -20,7 +20,7 @@ export default function DashboardHome() {
         // Fallback or Admin view
         return (
             <div className="p-8 text-center">
-                <h2 className="text-2xl font-bold text-gray-700">Welcome, {user.fullName || user.username}</h2>
+                <h2 className="text-2xl font-bold text-gray-700">Welcome, {user?.fullname ?? user?.fullName ?? user?.username}</h2>
                 <p className="text-gray-500 mt-2">Please select an option from the menu.</p>
             </div>
         );

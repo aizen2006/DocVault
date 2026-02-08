@@ -33,13 +33,13 @@ function App() {
     const checkSession = async () => {
       try {
         const response = await api.get('/users/me');
-        if (response.data.success) {
+        if (response.data?.success && response.data?.data) {
           dispatch(login({ user: response.data.data, token: null }));
         } else {
           dispatch(authCheckComplete());
         }
-      } catch (error) {
-        // Silent fail, user remains unauthenticated
+      } catch (_error) {
+        // 401 / network / refresh failed: user remains unauthenticated
         dispatch(authCheckComplete());
       }
     };

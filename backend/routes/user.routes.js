@@ -28,13 +28,13 @@ const router = Router()
 // Public routes
 router.route('/register').post(upload.single("avatar"), validate(registerSchema), registerUser);
 router.route('/login').post(validate(loginSchema), loginUser);
+router.route('/refresh-token').post(refreshAccessToken);
 router.route('/forgot-password').post(validate(forgotPasswordSchema), forgotPassword);
 router.route('/reset-password').post(validate(resetPasswordSchema), resetPassword);
 
 // Protected routes
 router.use(verifyJWT);
 router.route('/logout').post(logoutUser);
-router.route('/refresh-token').post(refreshAccessToken);
 router.route('/change-password').post(validate(changePasswordSchema), changeCurrentPassword);
 router.route('/me').get(getCurrentUser);
 router.route('/update-details').put(validate(updateDetailsSchema), updateAccountDetails);
