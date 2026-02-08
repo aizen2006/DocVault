@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaFilePdf, FaEdit, FaSave, FaCheck, FaTimes, FaFileAlt } from 'react-icons/fa';
+import { motion } from 'motion/react';
+import { FaArrowLeft, FaFilePdf, FaEdit, FaSave, FaTimes, FaSpinner } from 'react-icons/fa';
 import { Link, useParams } from 'react-router';
-import axios from 'axios';
+import api from '../../api/axios';
 
 export default function DocumentDetail() {
     const { id } = useParams();
@@ -12,8 +13,8 @@ export default function DocumentDetail() {
     useEffect(() => {
         const fetchRecord = async () => {
             try {
-                const response = await axios.get(`/api/v1/records/view-record/${id}`);
-                if (response.data.success) {
+                const response = await api.get(`/records/view-record/${id}`);
+                if (response.data?.success && response.data?.data) {
                     setMetadata(response.data.data);
                 }
             } catch (error) {
@@ -34,17 +35,31 @@ export default function DocumentDetail() {
     };
 
     if (loading) {
-        return <div className="p-8 text-center text-gray-500">Loading document details...</div>;
+        return (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center gap-3">
+                <FaSpinner className="w-8 h-8 animate-spin" />
+                <span>Loading document details...</span>
+            </motion.div>
+        );
     }
 
     if (!metadata) {
-        return <div className="p-8 text-center text-red-500">Document not found.</div>;
+        return (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 text-center text-red-500 dark:text-red-400">
+                Document not found.
+            </motion.div>
+        );
     }
 
     return (
         <div className="space-y-6">
             {/* Breadcrumb / Back */}
-            <div className="flex items-center text-sm text-gray-500">
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex items-center text-sm text-gray-500 dark:text-gray-400"
+            >
                 <Link to="/dashboard/records" className="hover:text-blue-600 flex items-center">
                     <FaArrowLeft className="mr-2" />
                     Back to Records
@@ -53,10 +68,15 @@ export default function DocumentDetail() {
                 <span>{metadata.categoryTags || 'Uncategorized'}</span>
                 <span className="mx-2">/</span>
                 <span className="text-gray-900 dark:text-gray-300 font-medium">{metadata.fileName}</span>
-            </div>
+            </motion.div>
 
             {/* Header Card */}
-            <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.05 }}
+                className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200/80 dark:border-gray-800/80 p-6 shadow-sm shadow-gray-200/50 dark:shadow-none"
+            >
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 text-2xl">
@@ -120,13 +140,18 @@ export default function DocumentDetail() {
                         </span>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Description Section */}
-                    <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 }}
+                        className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200/80 dark:border-gray-800/80 p-6 shadow-sm shadow-gray-200/50 dark:shadow-none"
+                    >
                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
                             Description
@@ -142,10 +167,15 @@ export default function DocumentDetail() {
                                 {metadata.description || 'No description provided.'}
                             </p>
                         )}
-                    </div>
+                    </motion.div>
 
                     {/* Tags Section */}
-                    <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.14 }}
+                        className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200/80 dark:border-gray-800/80 p-6 shadow-sm shadow-gray-200/50 dark:shadow-none"
+                    >
                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                             Category & Tags
@@ -155,12 +185,17 @@ export default function DocumentDetail() {
                                 #{metadata.categoryTags}
                             </span>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
                 {/* Sidebar Info */}
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+                    <motion.div
+                        initial={{ opacity: 0, x: 12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.12 }}
+                        className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200/80 dark:border-gray-800/80 p-6 shadow-sm shadow-gray-200/50 dark:shadow-none"
+                    >
                         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Ownership</h3>
                         <div className="flex items-center">
                             <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">
@@ -168,12 +203,17 @@ export default function DocumentDetail() {
                             </div>
                             <div className="ml-3">
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">{metadata.owner?.fullname || 'Unknown'}</p>
-                                <p className="text-xs text-gray-500">@{metadata.owner?.username}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">@{metadata.owner?.username}</p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+                    <motion.div
+                        initial={{ opacity: 0, x: 12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.16 }}
+                        className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200/80 dark:border-gray-800/80 p-6 shadow-sm shadow-gray-200/50 dark:shadow-none"
+                    >
                         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Timeline</h3>
                         <div className="space-y-6 border-l-2 border-gray-100 dark:border-gray-800 ml-2 pl-6">
                             <div className="relative">
@@ -187,14 +227,19 @@ export default function DocumentDetail() {
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">{new Date(metadata.createdAt).toLocaleDateString()}</p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">System ID</h3>
+                    <motion.div
+                        initial={{ opacity: 0, x: 12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.2 }}
+                        className="bg-white dark:bg-[#151725] rounded-xl border border-gray-200/80 dark:border-gray-800/80 p-6 shadow-sm shadow-gray-200/50 dark:shadow-none"
+                    >
+                        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">System ID</h3>
                         <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-800 text-xs font-mono text-gray-600 dark:text-gray-400 break-all">
                             {metadata._id}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </div>

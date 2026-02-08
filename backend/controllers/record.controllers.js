@@ -18,6 +18,9 @@ const viewRecord = asyncHandler(async (req, res) => {
                 new ApiResponse(200, record, "Record fetched successfully")
             );
     } catch (error) {
+        if (error.name === 'CastError') {
+            throw new ApiError(400, "Invalid record ID");
+        }
         throw new ApiError(500, "Failed to fetch record", error);
     }
 });
