@@ -13,7 +13,11 @@
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix"
   },
-  "keywords": ["docvault", "document-management", "api"],
+  "keywords": [
+    "docvault",
+    "document-management",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "engines": {
@@ -30,6 +34,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.2",
     "multer": "^2.0.2",
+    "nodemailer": "^6.10.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {

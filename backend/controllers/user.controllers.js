@@ -6,6 +6,7 @@ import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import config from "../config/index.js";
+import { sendPasswordResetEmail } from "../utils/mail.js";
 
 const ACCESS_COOKIE = "accessToken";
 const REFRESH_COOKIE = "refreshToken";
@@ -186,24 +187,33 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         )
 })
 
-// Forgot password - generates a reset token and (for now) returns it in response.
-// In a real production system, this token should be emailed to the user instead.
+// Forgot password: when MAIL_ID/MAIL_PASSWORD are set, send reset link by email;
+// otherwise return resetUrl in response for dev/demo.
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
-
     const user = await User.findOne({ email });
+    const genericMessage = "If an account with that email exists, a reset link has been sent.";
+    const mailConfigured = !!(process.env.MAIL_ID && process.env.MAIL_PASSWORD);
 
-    // For security, always respond with success even if user doesn't exist
     if (!user) {
         return res.status(200).json(
-            new ApiResponse(200, null, "If an account with that email exists, a reset link has been sent.")
+            new ApiResponse(200, null, genericMessage)
         );
     }
 
     const resetToken = await generatePasswordResetToken(user);
-
-    // In production, send this URL via email using a mail provider.
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
+
+    if (mailConfigured) {
+        const { success, error } = await sendPasswordResetEmail(user.email, resetUrl);
+        if (!success && error) {
+            // Log but don't leak to client; still return generic message
+            console.error("Forgot password email failed:", error?.message || error);
+        }
+        return res.status(200).json(
+            new ApiResponse(200, null, genericMessage)
+        );
+    }
 
     return res.status(200).json(
         new ApiResponse(200, { resetToken, resetUrl }, "Password reset link generated successfully")
