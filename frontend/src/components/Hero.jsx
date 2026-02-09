@@ -57,26 +57,29 @@ export default function Hero() {
                     </a>
                 </motion.div>
 
-                {/* Dashboard Preview Image (Placeholder Style) */}
+                {/* Product preview – static dashboard mockup */}
                 <motion.div
                     initial={{ opacity: 0, y: 40, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-                    className="mt-16 relative rounded-xl bg-gray-900 p-2 sm:p-4 shadow-2xl border border-gray-800"
+                    className="mt-16"
                 >
-                    {/* Fake UI Structure representing the dashboard image */}
-                    <div className="rounded-lg overflow-hidden bg-gray-800 aspect-[16/9] relative">
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-60"></div>
-                        {/* Abstract UI Elements */}
-                        <div className="p-8 space-y-4">
-                            <div className="flex space-x-4">
-                                <div className="w-1/4 h-32 bg-gray-700/50 rounded-lg animate-pulse"></div>
-                                <div className="w-3/4 h-32 bg-gray-700/50 rounded-lg animate-pulse"></div>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="h-8 bg-gray-700/30 rounded w-full"></div>
-                                <div className="h-8 bg-gray-700/30 rounded w-full"></div>
-                                <div className="h-8 bg-gray-700/30 rounded w-full"></div>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                        Product preview
+                    </p>
+                    <div className="relative rounded-xl bg-gray-900 p-2 sm:p-4 shadow-2xl border border-gray-800">
+                        <div className="rounded-lg overflow-hidden bg-gray-800 aspect-[16/9] relative">
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-60"></div>
+                            <div className="p-8 space-y-4 relative">
+                                <div className="flex space-x-4">
+                                    <div className="w-1/4 h-32 bg-gray-700/50 rounded-lg"></div>
+                                    <div className="w-3/4 h-32 bg-gray-700/50 rounded-lg"></div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="h-8 bg-gray-700/30 rounded w-full"></div>
+                                    <div className="h-8 bg-gray-700/30 rounded w-full"></div>
+                                    <div className="h-8 bg-gray-700/30 rounded w-full"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
